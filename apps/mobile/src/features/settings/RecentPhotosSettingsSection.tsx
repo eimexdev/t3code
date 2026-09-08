@@ -5,7 +5,8 @@ import {
   type MediaLibraryPermissionResponse,
 } from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, AppState, Linking } from "react-native";
+import { Alert, AppState, Linking, View } from "react-native";
+import { AppText as Text } from "../../components/AppText";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
 import { requestRecentPhotosAccess } from "./recentPhotosAccess";
 import { SettingsSection } from "./components/SettingsSection";
@@ -61,42 +62,46 @@ export function RecentPhotosSettingsSection() {
 
   const blocked = permission !== null && !permission.granted && !permission.canAskAgain;
   return (
-    <SettingsSection title="Attachments">
-      <SettingsSwitchRow
-        icon="photo"
-        label="Recent photos"
-        subtitle={
-          blocked
-            ? "Photo access is disabled. Allow access in iOS Settings to enable this shortcut."
-            : permission?.accessPrivileges === "limited"
-              ? "Hold the attachment button to pick from photos you've allowed."
-              : "Hold the attachment button to pick a recent photo. Requires photo-library access."
-        }
-        value={enabled && permission?.granted === true}
-        disabled={!ready || busy || permission === null || blocked}
-        onValueChange={(value) => void toggle(value)}
-      />
-      {blocked ? (
-        <SettingsRow
-          icon="gearshape"
-          label="Open iOS Settings"
-          onPress={() =>
-            void Linking.openSettings().catch(() =>
-              Alert.alert(
-                "Couldn't open Settings",
-                "Open iOS Settings, select T3 Code, then allow Photos access.",
-              ),
-            )
-          }
+    <View className="gap-3">
+      <SettingsSection title="Attachments">
+        <SettingsSwitchRow
+          icon="photo"
+          label="Photo quick picker"
+          subtitle="Hold + to choose a photo"
+          subtitleNumberOfLines={1}
+          value={enabled && permission?.granted === true}
+          disabled={!ready || busy || permission === null || blocked}
+          onValueChange={(value) => void toggle(value)}
         />
-      ) : null}
-      {permission === null ? (
-        <SettingsRow
-          icon="arrow.clockwise"
-          label="Check photo access"
-          onPress={() => void refresh()}
-        />
-      ) : null}
-    </SettingsSection>
+        {blocked ? (
+          <SettingsRow
+            icon="gearshape"
+            label="Open iOS Settings"
+            onPress={() =>
+              void Linking.openSettings().catch(() =>
+                Alert.alert(
+                  "Couldn't open Settings",
+                  "Open iOS Settings, select T3 Code, then allow Photos access.",
+                ),
+              )
+            }
+          />
+        ) : null}
+        {permission === null ? (
+          <SettingsRow
+            icon="arrow.clockwise"
+            label="Check photo access"
+            onPress={() => void refresh()}
+          />
+        ) : null}
+      </SettingsSection>
+      <Text className="px-2 text-sm text-foreground-muted">
+        {blocked
+          ? "Photo access is disabled. Allow Photos access in iOS Settings to enable the picker."
+          : permission?.accessPrivileges === "limited"
+            ? "Only photos you've allowed appear in the picker."
+            : "Requires photo-library access to show your four most recent photos."}
+      </Text>
+    </View>
   );
 }
