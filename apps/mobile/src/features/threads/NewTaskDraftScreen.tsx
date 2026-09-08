@@ -869,12 +869,13 @@ export function NewTaskDraftScreen(props: {
   });
   const showBranchLoading = flow.branchesLoading && flow.availableBranches.length === 0;
 
-  async function handlePickMedia(): Promise<void> {
+  async function handlePickMedia(assetId?: string): Promise<string | undefined> {
     if (isComposerInteractionLocked || voiceInput.isBusy) {
       return;
     }
     const capabilities = selectedEnvironmentServerConfig?.environment.capabilities;
     const result = await pickComposerMedia({
+      assetId,
       existingCount: flow.attachments.length,
       maxVideoBytes:
         capabilities?.attachmentUploads === true
@@ -892,6 +893,7 @@ export function NewTaskDraftScreen(props: {
     if (problems.length > 0) {
       Alert.alert("Could not attach photo or video", problems.join("\n\n"));
     }
+    return rejectedCount < result.attachments.length ? result.attachments[0]?.id : undefined;
   }
 
   async function handlePickFiles(): Promise<void> {
@@ -930,8 +932,7 @@ export function NewTaskDraftScreen(props: {
           existingCount: flow.attachments.length,
         });
         if (images.length > 0) {
-          const rejected = flow.appendAttachments(images);
-          return rejected < images.length ? images[0]?.id : undefined;
+          flow.appendAttachments(images);
         }
       } catch (error) {
         console.error("[native paste] error converting images", error);
@@ -1344,7 +1345,6 @@ export function NewTaskDraftScreen(props: {
                       selectedEnvironmentServerConfig?.environment.capabilities.fileAttachments,
                     )}
                     onPickMedia={handlePickMedia}
-                    onPickPhoto={handleNativePasteImages}
                     onPickFiles={handlePickFiles}
                   />
                   <ComposerToolbarScroller align="end" contentPaddingRight={0} fadeSurface="sheet">

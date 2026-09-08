@@ -12,9 +12,8 @@ const ATTACHMENT_MENU_ACTIONS: MenuAction[] = [
 export function ComposerAttachmentButton(props: {
   readonly disabled?: boolean;
   readonly supportsFiles: boolean;
-  readonly onPickMedia: () => Promise<void>;
+  readonly onPickMedia: (assetId?: string) => Promise<string | undefined>;
   readonly onPickFiles: () => Promise<void>;
-  readonly onPickPhoto: (uris: ReadonlyArray<string>) => Promise<string | undefined>;
 }) {
   const button = (
     <Pressable

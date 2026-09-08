@@ -7,7 +7,6 @@ final class T3RecentPhotosButton: ExpoView {
   let onPickMedia = EventDispatcher()
   let onPickFiles = EventDispatcher()
   let onPickPhoto = EventDispatcher()
-  let onPhotoError = EventDispatcher()
   private let button = UIButton(type: .system)
   private let icon = UIImageView()
   private lazy var hold = UILongPressGestureRecognizer(target: self, action: #selector(held))
@@ -118,8 +117,7 @@ final class T3RecentPhotosButton: ExpoView {
     overlay.onDismiss = { [weak self, weak overlay] in
       if self?.picker === overlay { self?.picker = nil }
     }
-    overlay.onSelect = { [weak self] uri, selectionId in self?.onPickPhoto(["uri": uri, "selectionId": selectionId]) }
-    overlay.onError = { [weak self] in self?.onPhotoError([:]) }
+    overlay.onSelect = { [weak self] assetId, selectionId in self?.onPickPhoto(["assetId": assetId, "selectionId": selectionId]) }
     picker = overlay
     window.addSubview(overlay)
     overlay.open()
@@ -135,7 +133,6 @@ final class T3RecentPhotosOverlay: UIView {
   }
   var onDismiss: (() -> Void)?
   var onSelect: ((String, String) -> Void)?
-  var onError: (() -> Void)?
   private let anchor: CGRect
   private let assets: [PHAsset]
   private weak var sourceIcon: UIImageView?
@@ -300,60 +297,21 @@ final class T3RecentPhotosOverlay: UIView {
     spinner.center = CGPoint(x: tileFrames[index].midX, y: tileFrames[index].midY)
     addSubview(spinner)
     spinner.startAnimating()
-    let options = PHImageRequestOptions()
-    options.deliveryMode = .highQualityFormat
-    options.isNetworkAccessAllowed = true
-    // Bound decoding memory; the composer also enforces its attachment byte limit.
-    let request = PHImageManager.default().requestImage(for: assets[index], targetSize: CGSize(width: 2048, height: 2048), contentMode: .aspectFit, options: options) { [weak self] image, info in
-      guard (info?[PHImageResultIsDegradedKey] as? Bool) != true else { return }
-      DispatchQueue.global(qos: .userInitiated).async {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("t3-composer-paste", isDirectory: true)
-        var uri: String?
-        let hasAlpha: Bool
-        switch image?.cgImage?.alphaInfo {
-        case .none?, .noneSkipFirst?, .noneSkipLast?: hasAlpha = false
-        default: hasAlpha = true
-        }
-        let data = hasAlpha ? image?.pngData() : image?.jpegData(compressionQuality: 0.9)
-        let fileExtension = hasAlpha ? "png" : "jpg"
-        if let data {
-          do {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            let url = directory.appendingPathComponent("\(UUID().uuidString).\(fileExtension)")
-            try data.write(to: url, options: .atomic)
-            uri = url.absoluteString
-          } catch { uri = nil }
-        }
-        let result = uri
-        DispatchQueue.main.async {
-          guard let self, !self.isDismissing else {
-            if let result, let url = URL(string: result) { try? FileManager.default.removeItem(at: url) }
-            return
-          }
-          spinner.removeFromSuperview()
-          guard let result else {
-            self.finishing = false
-            self.onError?()
-            self.dismiss()
-            return
-          }
-          self.selectedIndex = index
-          Self.pending[self.selectionId] = self
-          self.onSelect?(result, self.selectionId)
-          // A bridge reload can drop the finalization callback. Release only a
-          // selection still awaiting JavaScript, never one already in flight.
-          DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            guard let self, Self.pending[self.selectionId] === self else { return }
-            self.dismiss()
-          }
-        }
-      }
+    selectedIndex = index
+    Self.pending[selectionId] = self
+    onSelect?(assets[index].localIdentifier, selectionId)
+    // A bridge reload can drop the finalization callback. Release only a
+    // selection still awaiting JavaScript, never one already in flight.
+    DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+      guard let self, Self.pending[self.selectionId] === self else { return }
+      self.dismiss()
     }
-    requests.append(request)
   }
+
   func finishSelection(target: UIView?) {
     guard let index = selectedIndex else { return }
     selectedIndex = nil
+    subviews.compactMap { $0 as? UIActivityIndicatorView }.forEach { $0.removeFromSuperview() }
     guard let target, target.window === window else {
       finishing = false
       dismiss()

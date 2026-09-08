@@ -48,7 +48,7 @@ public final class T3NativeControlsModule: Module {
 
     View(T3RecentPhotosButton.self) {
       ViewName("RecentPhotosButton")
-      Events("onPickMedia", "onPickFiles", "onPickPhoto", "onPhotoError")
+      Events("onPickMedia", "onPickFiles", "onPickPhoto")
       Prop("disabled") { (view: T3RecentPhotosButton, value: Bool) in view.disabled = value }
       Prop("supportsFiles") { (view: T3RecentPhotosButton, value: Bool) in view.supportsFiles = value }
       Prop("iconColor") { (view: T3RecentPhotosButton, value: UIColor) in view.iconColor = value }

@@ -15,8 +15,7 @@ const NativeButton = requireNativeView<
     iconColor?: ColorValue;
     onPickMedia: () => void;
     onPickFiles: () => void;
-    onPickPhoto: (event: { nativeEvent: { uri: string; selectionId: string } }) => void;
-    onPhotoError: () => void;
+    onPickPhoto: (event: { nativeEvent: { assetId: string; selectionId: string } }) => void;
   }
 >("T3NativeControls", "RecentPhotosButton");
 
@@ -36,13 +35,7 @@ export function ComposerAttachmentButton(props: ComponentProps<typeof SharedAtta
       onPickPhoto={async ({ nativeEvent }) => {
         let attachmentId: string | undefined;
         try {
-          attachmentId = await props.onPickPhoto([nativeEvent.uri]);
-          if (!attachmentId) {
-            Alert.alert(
-              "Couldn't attach photo",
-              "The photo may be too large or the message may have reached its attachment limit.",
-            );
-          }
+          attachmentId = await props.onPickMedia(nativeEvent.assetId);
         } catch {
           Alert.alert("Couldn't attach photo", "Try again or choose it from Photo Library.");
         } finally {
@@ -54,9 +47,6 @@ export function ComposerAttachmentButton(props: ComponentProps<typeof SharedAtta
           });
         }
       }}
-      onPhotoError={() =>
-        Alert.alert("Couldn't load photo", "Try again or choose it from Photo Library.")
-      }
     />
   );
 }
