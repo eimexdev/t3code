@@ -540,7 +540,8 @@ export function useThreadComposerState() {
           existingCount: composerDrafts[threadKey]?.attachments.length ?? 0,
         });
         if (images.length > 0) {
-          appendComposerDraftAttachments(threadKey, images);
+          const rejected = appendComposerDraftAttachments(threadKey, images);
+          return rejected < images.length ? images[0]?.id : undefined;
         }
       } catch (error) {
         console.error("[native paste] error converting images", {

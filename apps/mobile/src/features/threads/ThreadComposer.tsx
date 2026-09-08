@@ -126,7 +126,7 @@ export interface ThreadComposerProps {
   readonly onChangeDraftMessage: (value: string) => void;
   readonly onPickDraftMedia: () => Promise<void>;
   readonly onPickDraftFiles: () => Promise<void>;
-  readonly onNativePasteImages: (uris: ReadonlyArray<string>) => Promise<void>;
+  readonly onNativePasteImages: (uris: ReadonlyArray<string>) => Promise<string | undefined>;
   readonly onRemoveDraftImage: (imageId: string) => void;
   readonly onStopThread: () => void;
   readonly onSendMessage: () => Promise<MessageId | null>;
@@ -603,6 +603,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                   props.serverConfig?.environment.capabilities.fileAttachments,
                 )}
                 onPickMedia={props.onPickDraftMedia}
+                onPickPhoto={props.onNativePasteImages}
                 onPickFiles={props.onPickDraftFiles}
               />
             ) : null}
@@ -758,6 +759,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                         props.serverConfig?.environment.capabilities.fileAttachments,
                       )}
                       onPickMedia={props.onPickDraftMedia}
+                      onPickPhoto={props.onNativePasteImages}
                       onPickFiles={props.onPickDraftFiles}
                     />
                     <View className="min-w-0 shrink" style={{ maxWidth: 152 }}>

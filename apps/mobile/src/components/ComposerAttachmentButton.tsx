@@ -14,6 +14,7 @@ export function ComposerAttachmentButton(props: {
   readonly supportsFiles: boolean;
   readonly onPickMedia: () => Promise<void>;
   readonly onPickFiles: () => Promise<void>;
+  readonly onPickPhoto: (uris: ReadonlyArray<string>) => Promise<string | undefined>;
 }) {
   const button = (
     <Pressable

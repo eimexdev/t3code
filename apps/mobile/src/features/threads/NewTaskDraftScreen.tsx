@@ -930,7 +930,8 @@ export function NewTaskDraftScreen(props: {
           existingCount: flow.attachments.length,
         });
         if (images.length > 0) {
-          flow.appendAttachments(images);
+          const rejected = flow.appendAttachments(images);
+          return rejected < images.length ? images[0]?.id : undefined;
         }
       } catch (error) {
         console.error("[native paste] error converting images", error);
@@ -1343,6 +1344,7 @@ export function NewTaskDraftScreen(props: {
                       selectedEnvironmentServerConfig?.environment.capabilities.fileAttachments,
                     )}
                     onPickMedia={handlePickMedia}
+                    onPickPhoto={handleNativePasteImages}
                     onPickFiles={handlePickFiles}
                   />
                   <ComposerToolbarScroller align="end" contentPaddingRight={0} fadeSurface="sheet">
