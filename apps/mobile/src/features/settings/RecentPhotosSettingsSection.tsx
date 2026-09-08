@@ -8,7 +8,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, AppState, Linking, View } from "react-native";
 import { AppText as Text } from "../../components/AppText";
 import { mobilePreferencesAtom, updateMobilePreferencesAtom } from "../../state/preferences";
-import { requestRecentPhotosAccess } from "./recentPhotosAccess";
+import {
+  createRecentPhotosAccessOperations,
+  requestRecentPhotosAccess,
+} from "./recentPhotosAccess";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { SettingsRow } from "./components/SettingsRow";
@@ -19,41 +22,52 @@ export function RecentPhotosSettingsSection() {
   const [permission, setPermission] = useState<MediaLibraryPermissionResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
+  const [operations] = useState(createRecentPhotosAccessOperations);
   const ready = AsyncResult.isSuccess(preferences);
   const enabled = ready && preferences.value.recentPhotosEnabled === true;
 
-  const refresh = useCallback(async () => {
-    try {
-      const access = await getMediaLibraryPermissionsAsync();
-      setPermission(access);
-      if (!access.granted) savePreferences({ recentPhotosEnabled: false });
-    } catch {
-      setPermission(null);
-    }
-  }, [savePreferences]);
+  const refresh = useCallback(
+    () =>
+      operations.run(
+        getMediaLibraryPermissionsAsync,
+        (access) => {
+          setPermission(access);
+          if (!access.granted) savePreferences({ recentPhotosEnabled: false });
+        },
+        () => setPermission(null),
+      ),
+    [operations, savePreferences],
+  );
 
   useEffect(() => {
     void refresh();
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active" && !inFlight.current) void refresh();
     });
-    return () => subscription.remove();
-  }, [refresh]);
+    return () => {
+      subscription.remove();
+      operations.invalidate();
+    };
+  }, [operations, refresh]);
 
   const toggle = async (value: boolean) => {
     if (!ready || inFlight.current) return;
     if (!value) {
+      operations.invalidate();
       savePreferences({ recentPhotosEnabled: false });
       return;
     }
     inFlight.current = true;
     setBusy(true);
     try {
-      const access = await requestRecentPhotosAccess();
-      setPermission(access);
-      savePreferences({ recentPhotosEnabled: access.granted });
-    } catch {
-      Alert.alert("Couldn't check photo access", "Try again in a moment.");
+      await operations.run(
+        requestRecentPhotosAccess,
+        (access) => {
+          setPermission(access);
+          savePreferences({ recentPhotosEnabled: access.granted });
+        },
+        () => Alert.alert("Couldn't check photo access", "Try again in a moment."),
+      );
     } finally {
       inFlight.current = false;
       setBusy(false);

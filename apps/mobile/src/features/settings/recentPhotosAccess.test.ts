@@ -5,7 +5,10 @@ vi.mock("expo-image-picker", () => ({
   getMediaLibraryPermissionsAsync: mocks.get,
   requestMediaLibraryPermissionsAsync: mocks.request,
 }));
-import { requestRecentPhotosAccess } from "./recentPhotosAccess";
+import {
+  createRecentPhotosAccessOperations,
+  requestRecentPhotosAccess,
+} from "./recentPhotosAccess";
 
 beforeEach(() => vi.resetAllMocks());
 
@@ -28,4 +31,31 @@ it.each([
   mocks.get.mockResolvedValue(access);
   expect(await requestRecentPhotosAccess()).toEqual(access);
   expect(mocks.request).not.toHaveBeenCalled();
+});
+
+it("ignores a denied refresh that finishes after a newer permission grant", async () => {
+  const operations = createRecentPhotosAccessOperations();
+  const stale = Promise.withResolvers<{ granted: boolean; canAskAgain: boolean }>();
+  const granted = { granted: true, canAskAgain: true };
+  const apply = vi.fn();
+  mocks.get.mockReturnValueOnce(stale.promise).mockResolvedValueOnce(granted);
+  const refresh = operations.run(mocks.get, apply, vi.fn());
+  await operations.run(requestRecentPhotosAccess, apply, vi.fn());
+  stale.resolve({ granted: false, canAskAgain: false });
+  await refresh;
+  expect(apply.mock.calls).toEqual([[granted]]);
+});
+
+it("ignores stale failures and invalidated operations", async () => {
+  const operations = createRecentPhotosAccessOperations();
+  const stale = Promise.withResolvers<never>();
+  const apply = vi.fn();
+  const onError = vi.fn();
+  mocks.get.mockReturnValueOnce(stale.promise);
+  const pending = operations.run(mocks.get, apply, onError);
+  operations.invalidate();
+  stale.reject(new Error("old permission query failed"));
+  await pending;
+  expect(apply).not.toHaveBeenCalled();
+  expect(onError).not.toHaveBeenCalled();
 });

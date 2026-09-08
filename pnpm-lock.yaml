@@ -356,7 +356,7 @@ importers:
         specifier: ~57.0.3
         version: 57.0.3(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.16)(bufferutil@4.1.0)(react@19.2.3)(utf-8-validate@6.0.6))(react@19.2.3)
       expo-image-picker:
-        specifier: ~57.0.14
+        specifier: 57.0.14
         version: 57.0.14(patch_hash=33b4500f7259cd1a2463c8cd452d80f2ee15059239fa24125fbc60fc7327f52d)(expo@57.0.18)
       expo-linking:
         specifier: ~57.0.8
