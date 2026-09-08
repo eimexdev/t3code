@@ -12,6 +12,16 @@ final class T3RecentPhotosButton: ExpoView {
   private lazy var hold = UILongPressGestureRecognizer(target: self, action: #selector(held))
   private var picker: T3RecentPhotosOverlay?
   private var generation = 0
+  var recentPhotosEnabled = false {
+    didSet {
+      hold.isEnabled = recentPhotosEnabled
+      button.accessibilityHint = recentPhotosEnabled ? "Touch and hold for recent photos" : nil
+      button.accessibilityCustomActions = recentPhotosEnabled
+        ? [UIAccessibilityCustomAction(name: "Recent photos", target: self, selector: #selector(openAccessible))]
+        : nil
+      if !recentPhotosEnabled { close() }
+    }
+  }
   var supportsFiles = false { didSet { updateMenu() } }
   var disabled = false {
     didSet {
@@ -29,11 +39,10 @@ final class T3RecentPhotosButton: ExpoView {
     icon.tintColor = .label
     icon.isUserInteractionEnabled = false
     button.accessibilityLabel = "Add attachment"
-    button.accessibilityHint = "Touch and hold for recent photos"
-    button.accessibilityCustomActions = [UIAccessibilityCustomAction(name: "Recent photos", target: self, selector: #selector(openAccessible))]
     button.addTarget(self, action: #selector(tapped), for: .touchUpInside)
     addSubview(button)
     addSubview(icon)
+    hold.isEnabled = false
     hold.minimumPressDuration = 0.3
     hold.allowableMovement = 18
     button.addGestureRecognizer(hold)
@@ -88,19 +97,10 @@ final class T3RecentPhotosButton: ExpoView {
   }
 
   private func open() {
-    guard !disabled, picker == nil, window != nil else { return }
+    guard recentPhotosEnabled, !disabled, picker == nil, window != nil else { return }
     generation += 1
     let current = generation
     let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-    if status == .notDetermined {
-      PHPhotoLibrary.requestAuthorization(for: .readWrite) { [weak self] _ in
-        DispatchQueue.main.async {
-          guard let self, self.window != nil, !self.disabled else { return }
-          self.open()
-        }
-      }
-      return
-    }
     guard status == .authorized || status == .limited else {
       onPickMedia([:])
       return
