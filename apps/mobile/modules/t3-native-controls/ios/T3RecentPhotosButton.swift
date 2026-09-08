@@ -268,8 +268,11 @@ final class T3RecentPhotosOverlay: UIView {
     if let index = index(at: gesture.location(in: self)) { select(index) } else { dismiss() }
   }
   @objc private func dragged(_ gesture: UIPanGestureRecognizer) {
-    if gesture.state == .ended { release(at: gesture.location(in: self)) }
-    else { hover(at: gesture.state == .cancelled ? nil : gesture.location(in: self)) }
+    if gesture.state == .ended {
+      release(at: gesture.location(in: self))
+    } else {
+      hover(at: gesture.state == .cancelled ? nil : gesture.location(in: self))
+    }
   }
 
   @objc func dismiss() {
@@ -306,10 +309,17 @@ final class T3RecentPhotosOverlay: UIView {
       DispatchQueue.global(qos: .userInitiated).async {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("t3-composer-paste", isDirectory: true)
         var uri: String?
-        if let data = image?.pngData() {
+        let hasAlpha: Bool
+        switch image?.cgImage?.alphaInfo {
+        case .none?, .noneSkipFirst?, .noneSkipLast?: hasAlpha = false
+        default: hasAlpha = true
+        }
+        let data = hasAlpha ? image?.pngData() : image?.jpegData(compressionQuality: 0.9)
+        let fileExtension = hasAlpha ? "png" : "jpg"
+        if let data {
           do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            let url = directory.appendingPathComponent("\(UUID().uuidString).png")
+            let url = directory.appendingPathComponent("\(UUID().uuidString).\(fileExtension)")
             try data.write(to: url, options: .atomic)
             uri = url.absoluteString
           } catch { uri = nil }
@@ -330,7 +340,12 @@ final class T3RecentPhotosOverlay: UIView {
           self.selectedIndex = index
           Self.pending[self.selectionId] = self
           self.onSelect?(result, self.selectionId)
-
+          // A bridge reload can drop the finalization callback. Release only a
+          // selection still awaiting JavaScript, never one already in flight.
+          DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            guard let self, Self.pending[self.selectionId] === self else { return }
+            self.dismiss()
+          }
         }
       }
     }
@@ -426,7 +441,6 @@ private final class T3RecentPhotoTile: UIView {
     imageView.frame = bounds
     layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: 15).cgPath
   }
-
 
   var activate: (() -> Void)?
   override func accessibilityActivate() -> Bool { activate?(); return true }
