@@ -603,6 +603,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                   props.serverConfig?.environment.capabilities.fileAttachments,
                 )}
                 onPickMedia={props.onPickDraftMedia}
+                onPickRecentPhoto={props.onPickDraftMedia}
                 onPickFiles={props.onPickDraftFiles}
               />
             ) : null}
@@ -758,6 +759,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                         props.serverConfig?.environment.capabilities.fileAttachments,
                       )}
                       onPickMedia={props.onPickDraftMedia}
+                      onPickRecentPhoto={props.onPickDraftMedia}
                       onPickFiles={props.onPickDraftFiles}
                     />
                     <View className="min-w-0 shrink" style={{ maxWidth: 152 }}>

@@ -31,7 +31,8 @@ export function ComposerAttachmentButton(props: ComponentProps<typeof ComposerAt
   const preferences = useAtomValue(mobilePreferencesAtom);
   const enabled =
     AsyncResult.isSuccess(preferences) && preferences.value.recentPhotosEnabled === true;
-  if (!enabled) return <ComposerAttachmentMenu {...props} />;
+  const onPickRecentPhoto = props.onPickRecentPhoto;
+  if (!enabled || !onPickRecentPhoto) return <ComposerAttachmentMenu {...props} />;
   return (
     <ThemedNativeButton
       style={{ width: 44, height: 44, flexShrink: 0 }}
@@ -44,7 +45,7 @@ export function ComposerAttachmentButton(props: ComponentProps<typeof ComposerAt
       onPickPhoto={async ({ nativeEvent }) => {
         let attachmentId: string | undefined;
         try {
-          attachmentId = await props.onPickMedia(nativeEvent.assetId);
+          attachmentId = await onPickRecentPhoto(nativeEvent.assetId);
         } catch {
           Alert.alert("Couldn't attach photo", "Try again or choose it from Photo Library.");
         } finally {

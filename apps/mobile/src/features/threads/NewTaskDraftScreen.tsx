@@ -1345,6 +1345,7 @@ export function NewTaskDraftScreen(props: {
                       selectedEnvironmentServerConfig?.environment.capabilities.fileAttachments,
                     )}
                     onPickMedia={handlePickMedia}
+                    onPickRecentPhoto={handlePickMedia}
                     onPickFiles={handlePickFiles}
                   />
                   <ComposerToolbarScroller align="end" contentPaddingRight={0} fadeSurface="sheet">
