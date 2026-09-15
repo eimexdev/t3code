@@ -1494,6 +1494,40 @@ it.effect("project icon overrides accept Lucide icons, colors, and emoji", () =>
   }),
 );
 
+it.effect("project monograms validate text and palette colors", () =>
+  Effect.gen(function* () {
+    for (const text of ["A", "T3", "É", "文書"]) {
+      const projectIcon = { kind: "monogram", text, color: "violet" } as const;
+      const command = yield* decodeOrchestrationCommand({
+        type: "project.meta.update",
+        commandId: "cmd-monogram",
+        projectId: "project-1",
+        projectIcon,
+      });
+      assert.strictEqual(command.type, "project.meta.update");
+      if (command.type === "project.meta.update")
+        assert.deepEqual(command.projectIcon, projectIcon);
+    }
+    for (const projectIcon of [
+      { kind: "monogram", text: "", color: "blue" },
+      { kind: "monogram", text: "ABC", color: "blue" },
+      { kind: "monogram", text: "A B", color: "blue" },
+      { kind: "monogram", text: "🚀", color: "blue" },
+      { kind: "monogram", text: "T3", color: "ultraviolet" },
+    ]) {
+      const result = yield* Effect.exit(
+        decodeOrchestrationCommand({
+          type: "project.meta.update",
+          commandId: "cmd-monogram-invalid",
+          projectId: "project-1",
+          projectIcon,
+        }),
+      );
+      assert.strictEqual(result._tag, "Failure");
+    }
+  }),
+);
+
 it.effect("rejects thread history imports without messages", () =>
   Effect.gen(function* () {
     const result = yield* Effect.exit(

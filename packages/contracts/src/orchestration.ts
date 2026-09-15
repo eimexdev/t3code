@@ -459,7 +459,16 @@ const ProjectLucideIconName = TrimmedNonEmptyString.check(
 
 const ProjectEmoji = TrimmedNonEmptyString.check(Schema.isMaxLength(32));
 
+export const ProjectMonogramText = TrimmedNonEmptyString.check(
+  Schema.isPattern(/^[\p{L}\p{N}]{1,2}$/u),
+);
+
 export const ProjectIconOverride = Schema.Union([
+  Schema.Struct({
+    kind: Schema.Literal("monogram"),
+    text: ProjectMonogramText,
+    color: ProjectIconColor,
+  }),
   Schema.Struct({
     kind: Schema.Literal("lucide"),
     name: ProjectLucideIconName,

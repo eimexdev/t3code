@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
+import { PROJECT_ICON_COLORS } from "@t3tools/shared/projectIconColors";
 import { deriveProjectIdentity } from "./projectIdentity";
 
 describe("deriveProjectIdentity", () => {
@@ -19,6 +20,13 @@ describe("deriveProjectIdentity", () => {
     const equivalent = deriveProjectIdentity("  NEBULA  ");
 
     expect(equivalent.color).toBe(canonical.color);
+  });
+
+  it("uses only colors available in the icon picker", () => {
+    const palette = PROJECT_ICON_COLORS.map(({ value }) => value);
+    for (const name of ["Jobs", "Scripts and Extractors", "T3", "文書", "", "---"]) {
+      expect(palette).toContain(deriveProjectIdentity(name).color);
+    }
   });
 
   it("generates different hues for different project names", () => {

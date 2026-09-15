@@ -23,6 +23,10 @@
       "types": "./src/themePreview.ts",
       "import": "./src/themePreview.ts"
     },
+    "./projectIconColors": {
+      "types": "./src/projectIconColors.ts",
+      "import": "./src/projectIconColors.ts"
+    },
     "./projectFavicon": {
       "types": "./src/projectFavicon.ts",
       "import": "./src/projectFavicon.ts"

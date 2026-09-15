@@ -10,7 +10,8 @@ import { lazy, Suspense, useState } from "react";
 import { useAtomValue } from "@effect/atom-react";
 import { projectFaviconUrlAtom } from "../state/assets";
 import { deriveProjectIdentity } from "../projectIdentity";
-import { projectIconColorClassName } from "../projectIconColors";
+import { projectIconColorClassName } from "@t3tools/shared/projectIconColors";
+import { ProjectMonogram } from "./ProjectMonogram";
 import { cn } from "~/lib/utils";
 
 const DynamicIcon = lazy(() =>
@@ -42,6 +43,15 @@ export function ProjectFavicon(input: {
       faviconPath: project.faviconPath,
     }),
   );
+  if (project.projectIcon?.kind === "monogram") {
+    return (
+      <ProjectMonogram
+        text={project.projectIcon.text}
+        color={project.projectIcon.color}
+        className={input.className}
+      />
+    );
+  }
   if (project.projectIcon?.kind === "emoji") {
     return (
       <ProjectFaviconFallback
@@ -112,39 +122,8 @@ function ProjectFaviconFallback({
 }) {
   if (projectName && projectName.trim().length > 0) {
     const identity = deriveProjectIdentity(projectName);
-    // Wrapped like the emoji and Lucide branches so the monogram sits where an
-    // <img> favicon would. Menu items, buttons and the like pull every bare svg
-    // in with [&_svg]:-mx-0.5 to trim the padding stroke icons carry, and this
-    // tile has no such padding.
     return (
-      <span
-        aria-hidden="true"
-        className={cn("inline-flex size-4 shrink-0 items-center justify-center", className)}
-      >
-        <svg
-          viewBox="0 0 16 16"
-          className="size-full overflow-hidden rounded-[25%] font-mono select-none"
-          style={{
-            color: identity.color,
-            backgroundColor: "color-mix(in srgb, currentColor 14%, transparent)",
-          }}
-        >
-          <text
-            x="8"
-            y="10.8"
-            textAnchor="middle"
-            fill="currentColor"
-            className="font-mono"
-            fontSize="8.25"
-            fontWeight="700"
-            textLength="12"
-            lengthAdjust="spacingAndGlyphs"
-            textRendering="geometricPrecision"
-          >
-            {identity.monogram}
-          </text>
-        </svg>
-      </span>
+      <ProjectMonogram text={identity.monogram} color={identity.color} className={className} />
     );
   }
 
