@@ -1,5 +1,5 @@
 import type { ProjectIconColor } from "@t3tools/contracts";
-import { projectIconColorClassName } from "@t3tools/shared/projectIconColors";
+import { projectIconColorClassName } from "../projectIconColors";
 import { cn } from "~/lib/utils";
 
 export function ProjectMonogram({

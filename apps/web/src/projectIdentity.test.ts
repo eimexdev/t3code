@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { PROJECT_ICON_COLORS } from "@t3tools/shared/projectIconColors";
+import { PROJECT_ICON_COLORS } from "./projectIconColors";
 import { deriveProjectIdentity } from "./projectIdentity";
 
 describe("deriveProjectIdentity", () => {

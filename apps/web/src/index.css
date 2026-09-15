@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@source "../../../packages/shared/src/projectIconColors.ts";
 
 @custom-variant dark (&:is(.dark, .dark *));
 @custom-variant light (&:not(.dark, .dark *));

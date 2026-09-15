@@ -1,11 +1,8 @@
-import Svg, { Rect, Text as SvgText } from "react-native-svg";
-import { useResolveClassNames } from "uniwind";
-import { projectIconColorClassName } from "@t3tools/shared/projectIconColors";
 import { SymbolView } from "./AppSymbol";
 import { Image } from "expo-image";
 import { useLayoutEffect, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import type { EnvironmentId, ProjectIconOverride } from "@t3tools/contracts";
+import { View } from "react-native";
+import type { EnvironmentId } from "@t3tools/contracts";
 import {
   getProjectFaviconCacheKey,
   getProjectFaviconResourceKey,
@@ -33,7 +30,6 @@ export function ProjectFavicon(props: {
   readonly projectTitle: string;
   readonly workspaceRoot?: string | null;
   readonly faviconPath?: string | null;
-  readonly projectIcon?: ProjectIconOverride | null;
 }) {
   const size = props.size ?? 42;
   const faviconUrl = useAtomValue(
@@ -54,10 +50,6 @@ export function ProjectFavicon(props: {
         ? getProjectFaviconResourceKey(props.environmentId, props.workspaceRoot, props.faviconPath)
         : getProjectFaviconCacheKey(props.environmentId, props.workspaceRoot, renderableFaviconUrl)
       : null;
-
-  if (props.projectIcon?.kind === "monogram") {
-    return <ProjectMonogram icon={props.projectIcon} size={size} />;
-  }
 
   return (
     <ProjectFaviconImage
@@ -149,31 +141,5 @@ function ProjectFaviconImage(props: {
         />
       ) : null}
     </View>
-  );
-}
-
-function ProjectMonogram({
-  icon,
-  size,
-}: {
-  readonly icon: Extract<ProjectIconOverride, { kind: "monogram" }>;
-  readonly size: number;
-}) {
-  const { color } = StyleSheet.flatten(useResolveClassNames(projectIconColorClassName(icon.color)));
-  return (
-    <Svg width={size} height={size} viewBox="0 0 16 16" accessible={false}>
-      <Rect width={16} height={16} rx={4} fill={color} fillOpacity={0.14} />
-      <SvgText
-        x={8}
-        y={10.8}
-        textAnchor="middle"
-        fill={color}
-        fontFamily="monospace"
-        fontSize={8.25}
-        fontWeight="700"
-      >
-        {icon.text}
-      </SvgText>
-    </Svg>
   );
 }

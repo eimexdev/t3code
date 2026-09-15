@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "uniwind";
-@source "../../packages/shared/src/projectIconColors.ts";
 @import "./generated-uniwind-themes.css";
 
 /* ─── Theme tokens ──────────────────────────────────────────────────── */

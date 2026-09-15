@@ -1,4 +1,4 @@
-import { PROJECT_ICON_COLORS } from "@t3tools/shared/projectIconColors";
+import { PROJECT_ICON_COLORS } from "./projectIconColors";
 import type { ProjectIconColor } from "@t3tools/contracts";
 
 /** Visual identity tokens for a generated project badge. */
