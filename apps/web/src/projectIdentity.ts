@@ -1,8 +1,7 @@
 /** Visual identity tokens for a generated project badge. */
 export interface ProjectIdentity {
   readonly monogram: string;
-  readonly background: string;
-  readonly highlight: string;
+  readonly color: string;
 }
 
 function normalizeProjectName(projectName: string): string {
@@ -37,7 +36,6 @@ export function deriveProjectIdentity(projectName: string): ProjectIdentity {
   const hue = projectHue(projectName);
   return {
     monogram: projectMonogram(projectName),
-    background: `hsl(${hue} 48% 36%)`,
-    highlight: `hsl(${(hue + 24) % 360} 58% 48%)`,
+    color: `light-dark(hsl(${hue} 65% 35%), hsl(${hue} 65% 70%))`,
   };
 }

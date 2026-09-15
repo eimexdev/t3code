@@ -18,14 +18,13 @@ describe("deriveProjectIdentity", () => {
     const canonical = deriveProjectIdentity("Nebula");
     const equivalent = deriveProjectIdentity("  NEBULA  ");
 
-    expect(equivalent.background).toBe(canonical.background);
-    expect(equivalent.highlight).toBe(canonical.highlight);
+    expect(equivalent.color).toBe(canonical.color);
   });
 
   it("generates different hues for different project names", () => {
     const colors = new Set(
       ["Nebula", "M7 Forge", "Silver Orchard", "Blue Harbor", "Copper Finch", "Juniper Vale"].map(
-        (projectName) => deriveProjectIdentity(projectName).background,
+        (projectName) => deriveProjectIdentity(projectName).color,
       ),
     );
 

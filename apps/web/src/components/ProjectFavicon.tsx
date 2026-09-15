@@ -125,15 +125,15 @@ function ProjectFaviconFallback({
           viewBox="0 0 16 16"
           className="size-full overflow-hidden rounded-[25%] font-mono select-none"
           style={{
-            backgroundColor: identity.background,
-            backgroundImage: `linear-gradient(145deg, ${identity.highlight}, ${identity.background} 72%)`,
+            color: identity.color,
+            backgroundColor: "color-mix(in srgb, currentColor 14%, transparent)",
           }}
         >
           <text
             x="8"
             y="10.8"
             textAnchor="middle"
-            fill="white"
+            fill="currentColor"
             className="font-mono"
             fontSize="8.25"
             fontWeight="700"
@@ -143,16 +143,6 @@ function ProjectFaviconFallback({
           >
             {identity.monogram}
           </text>
-          <rect
-            x="0.25"
-            y="0.25"
-            width="15.5"
-            height="15.5"
-            rx="3.75"
-            fill="none"
-            strokeWidth="0.5"
-            className="stroke-black/10 dark:stroke-white/10"
-          />
         </svg>
       </span>
     );
