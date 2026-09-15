@@ -2,6 +2,8 @@ import type { ProjectIconColor } from "@t3tools/contracts";
 import { projectIconColorClassName } from "../projectIconColors";
 import { cn } from "~/lib/utils";
 
+const monogramSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+
 export function ProjectMonogram({
   text,
   color,
@@ -38,7 +40,7 @@ export function ProjectMonogram({
           className="font-mono"
           fontSize="8.25"
           fontWeight="700"
-          textLength={Array.from(text).length === 1 ? 6 : 12}
+          textLength={Array.from(monogramSegmenter.segment(text)).length === 1 ? 6 : 12}
           lengthAdjust="spacingAndGlyphs"
           textRendering="geometricPrecision"
         >

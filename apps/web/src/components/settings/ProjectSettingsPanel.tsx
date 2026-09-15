@@ -434,13 +434,11 @@ function ProjectDetail({
           <SettingsRow
             title="Project icon"
             description={
-              projectIcon?.kind === "monogram"
-                ? `${projectIcon.text} · ${projectIcon.color}`
-                : projectIcon?.kind === "lucide"
-                  ? `${projectIcon.name} · ${projectIcon.color}`
-                  : projectIcon?.kind === "emoji"
-                    ? projectIcon.emoji
-                    : (faviconPath ?? "Automatic")
+              projectIcon?.kind === "lucide"
+                ? `${projectIcon.monogram ?? projectIcon.name} · ${projectIcon.color}`
+                : projectIcon?.kind === "emoji"
+                  ? projectIcon.emoji
+                  : (faviconPath ?? "Automatic")
             }
             resetAction={
               group.memberProjects.some(
