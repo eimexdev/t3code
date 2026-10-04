@@ -129,12 +129,9 @@ export const make = Effect.gen(function* () {
 
   const readRemarks = Effect.fn("PullRequestWatchReactor.readRemarks")(
     function* (reference: PullRequestRef, activity: PullRequestActivity) {
-      // Truncation without a continuation means the initial thread read was incomplete.
-      if (
-        activity.commentsTruncated &&
-        !activity.reviewThreads.some((thread) => thread.nextCommentsCursor !== undefined)
-      )
-        return null;
+      // Comment cursors cannot account for missing threads. Only finish a truncated read
+      // when the host confirms that every thread was listed.
+      if (activity.commentsTruncated && activity.reviewThreadsTruncated !== false) return null;
 
       const comments = new Map(activity.comments.map((comment) => [comment.id, comment]));
       for (const thread of activity.reviewThreads) {

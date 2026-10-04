@@ -2315,6 +2315,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
     "page failure",
     "repeated cursor",
     "missing comments",
+    "thread list truncated",
   ])("wakes a watched thread once: %s", (mode) =>
     Effect.gen(function* () {
       const orchestrator = yield* Orchestrator.OrchestratorV2;
@@ -2451,6 +2452,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
                       : [...firstTen, { ...remark, kind: "issue-comment" }],
                   commentCount: mode === "single page" ? 1 : 13,
                   commentsTruncated: mode !== "single page",
+                  reviewThreadsTruncated: mode === "thread list truncated" && !recovering,
                   reviewThreads:
                     mode === "single page"
                       ? []
@@ -2507,6 +2509,8 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
           messages.map((message) => message.notification?.summary),
           ["#7: checks failed"],
         );
+        // Keep the two notifications ordered independently of their random message IDs.
+        yield* TestClock.adjust("1 millis");
         recovering = true;
       }
       yield* reactor.sweep;
