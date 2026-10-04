@@ -2,6 +2,8 @@ import {
   CommandId,
   MessageId,
   type OrchestrationV2Notification,
+  type PullRequestActivity,
+  type PullRequestRef,
   type ThreadPullRequestLink,
   type ThreadPullRequestWatch,
 } from "@t3tools/contracts";
@@ -125,6 +127,52 @@ export const make = Effect.gen(function* () {
       },
     }).pipe(Effect.catch(() => record(target, null)));
 
+  const readRemarks = Effect.fn("PullRequestWatchReactor.readRemarks")(
+    function* (reference: PullRequestRef, activity: PullRequestActivity) {
+      // Truncation without a continuation means the initial thread read was incomplete.
+      if (
+        activity.commentsTruncated &&
+        !activity.reviewThreads.some((thread) => thread.nextCommentsCursor !== undefined)
+      )
+        return null;
+
+      const comments = new Map(activity.comments.map((comment) => [comment.id, comment]));
+      for (const thread of activity.reviewThreads) {
+        const ids = new Set(thread.comments.map((comment) => comment.id));
+        const cursors = new Set<string>();
+        let cursor = thread.nextCommentsCursor ?? null;
+        while (cursor !== null) {
+          if (cursors.has(cursor)) return null;
+          cursors.add(cursor);
+          const page = yield* pullRequests.threadComments({
+            ...reference,
+            threadId: thread.id,
+            cursor,
+          });
+          for (const comment of page.comments) {
+            ids.add(comment.id);
+            comments.set(comment.id, {
+              ...comment,
+              kind: "review-comment",
+              path: thread.path,
+              reviewState: null,
+            });
+          }
+          cursor = page.nextCursor;
+        }
+        if (ids.size < (thread.commentCount ?? 0)) return null;
+      }
+      return [...comments.values()].sort((left, right) =>
+        left.createdAt.localeCompare(right.createdAt),
+      );
+    },
+    Effect.catch((error) =>
+      Effect.logWarning("pull request watch comment pagination failed", { error }).pipe(
+        Effect.as(null),
+      ),
+    ),
+  );
+
   const check = Effect.fn("PullRequestWatchReactor.check")(function* (target: WatchTarget) {
     const { thread, link, watch } = target;
     const pullRequest = identityOf(link);
@@ -160,13 +208,9 @@ export const make = Effect.gen(function* () {
     const [detail, activity] = read.value;
     if (detail.state !== "open") return yield* record(target, null);
 
-    // A degraded read (GitHub's review thread query failed) is truncated with no long thread to
-    // explain it, and would skip review comments, so remarks wait for a later pass. Replies past
-    // the first ten of a long review thread are not read.
-    const degraded =
-      activity.commentsTruncated &&
-      !activity.reviewThreads.some((reviewThread) => reviewThread.nextCommentsCursor !== undefined);
-    const report = evaluatePullRequestWatch(watch, detail, degraded ? null : activity.comments);
+    // Never advance the remark watermark past comments an incomplete read could have missed.
+    const remarks = yield* readRemarks(reference, activity);
+    const report = evaluatePullRequestWatch(watch, detail, remarks);
     if (report.changes.length > 0) {
       return yield* record(
         target,
