@@ -2438,6 +2438,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
       };
       const incomplete = mode !== "single page" && mode !== "paginated";
       let recovering = false;
+      let pagesRead = 0;
       const reactor = yield* PullRequestWatchReactor.make.pipe(
         Effect.provide(
           Layer.mergeAll(
@@ -2472,6 +2473,7 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
                   commits: [],
                 }),
               threadComments: (input) => {
+                pagesRead += 1;
                 assert.equal(input.threadId, "review-thread");
                 if (input.cursor === "after-10") {
                   return Effect.succeed({ comments: [eleventh], nextCursor: "after-11" });
@@ -2514,7 +2516,10 @@ it.layer(TestLayer)("OrchestrationV2LayerLive lifecycle", (it) => {
         recovering = true;
       }
       yield* reactor.sweep;
+      // A thread whose count has not moved is not paged again.
+      const pagesBefore = pagesRead;
       yield* reactor.sweep;
+      assert.equal(pagesRead, pagesBefore);
 
       const { messages } = yield* orchestrator.getThreadRecords(threadId, ["messages"]);
       assert.deepEqual(
