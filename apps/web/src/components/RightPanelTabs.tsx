@@ -18,7 +18,7 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
-  PointerSensor,
+  MouseSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -819,7 +819,8 @@ function SortableTabList(props: {
   onMove: ((surfaceId: string, toIndex: number) => void) | undefined;
   children: ReactNode;
 }) {
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  // Mouse only: a touch swipe keeps scrolling the strip and a long press keeps opening the tab menu.
+  const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 6 } }));
   const surfaceIds = useMemo(() => props.surfaces.map((surface) => surface.id), [props.surfaces]);
   const { onMove, surfaces } = props;
   const handleDragEnd = useCallback(
